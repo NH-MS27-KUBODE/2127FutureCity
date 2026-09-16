@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { createCanvasDiorama, getArchetype, tuneDioramaWithScores, archetypeToDiorama } from './core-city'
-import { scoreArchetype } from './lib/archetypeScoring'
 import { ALL_ARCHETYPE_IDS } from './lib/axes'
-import { enumerateCompleteChoices } from './lib/verify'
+import { archetypeRepresentatives } from './lib/verify'
 import { calculateScores } from './lib/scoring'
-import type { ArchetypeId, CompleteChoices } from './types'
+import type { ArchetypeId } from './types'
 
 const ANGLES = [
   { key: '0', label: '0°', rot: 0 },
@@ -12,14 +11,7 @@ const ANGLES = [
   { key: '180', label: '180°', rot: Math.PI },
 ] as const
 
-const representatives = (() => {
-  const map = {} as Record<ArchetypeId, CompleteChoices>
-  for (const choices of enumerateCompleteChoices()) {
-    const id = scoreArchetype(choices).archetypeId
-    if (!map[id]) map[id] = choices
-  }
-  return map
-})()
+const representatives = archetypeRepresentatives()
 
 type AngleKey = (typeof ANGLES)[number]['key']
 

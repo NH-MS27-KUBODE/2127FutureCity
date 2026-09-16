@@ -1,4 +1,4 @@
-import { CATEGORY_KEYS, type Choices, type Scores } from '../types'
+import { CATEGORY_KEYS, METRIC_KEYS, type Choices, type Scores } from '../types'
 import { findPolicy } from '../data/policies'
 import { METRIC_LABELS } from '../data/copy'
 
@@ -13,14 +13,6 @@ export type CityContent = {
   dailyLife: string
   analysis: string
 }
-
-const METRIC_KEYS = [
-  'environment',
-  'freedom',
-  'equity',
-  'convenience',
-  'diversity',
-] as const
 
 const isJapaneseText = (value: unknown): value is string =>
   typeof value === 'string' &&

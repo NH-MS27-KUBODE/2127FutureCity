@@ -1,22 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { DioramaStage } from './components/Experience'
 import { getArchetype } from './core-city'
-import { scoreArchetype } from './lib/archetypeScoring'
 import { ALL_ARCHETYPE_IDS } from './lib/axes'
-import { enumerateCompleteChoices } from './lib/verify'
+import { archetypeRepresentatives } from './lib/verify'
 import { calculateScores } from './lib/scoring'
-import type { ArchetypeId, CompleteChoices } from './types'
 
 const WAIT_MS = 1200
 
-const representatives = (() => {
-  const map = {} as Record<ArchetypeId, CompleteChoices>
-  for (const choices of enumerateCompleteChoices()) {
-    const id = scoreArchetype(choices).archetypeId
-    if (!map[id]) map[id] = choices
-  }
-  return map
-})()
+const representatives = archetypeRepresentatives()
 
 export function CaptureCities() {
   const [index, setIndex] = useState(0)

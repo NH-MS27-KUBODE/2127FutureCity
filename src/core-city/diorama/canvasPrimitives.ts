@@ -158,6 +158,14 @@ export interface BoxSpec {
   readonly invisible?: boolean;
 }
 
+/** 面の外向き法線（ローカル: 0 = -z / 1 = +x / 2 = +z / 3 = -x）。 */
+export const FACE_DIRS: readonly (readonly [number, number])[] = [
+  [0, -1],
+  [1, 0],
+  [0, 1],
+  [-1, 0],
+];
+
 /** 側面の明るさ。法線の向きから決めるので、回すと陰影が移る。 */
 function toneOf(nx: number, nz: number): number {
   return Math.min(1, Math.max(0, (nx - nz) * 0.5 + 0.5));
@@ -229,14 +237,6 @@ export function drawBox(ctx: Ctx, camera: IsoCamera, spec: BoxSpec): BoxResult {
     [hw, hd],
     [-hw, hd],
   ];
-  // 各側面の外向き法線（ローカル）
-  const normals: readonly (readonly [number, number])[] = [
-    [0, -1],
-    [1, 0],
-    [0, 1],
-    [-1, 0],
-  ];
-
   const bottom = local.map(([lx, lz]) => toScreen(camera, spec.x + lx, y0, spec.z + lz));
   const top = local.map(([lx, lz]) => toScreen(camera, spec.x + lx, y1, spec.z + lz));
 
@@ -245,7 +245,7 @@ export function drawBox(ctx: Ctx, camera: IsoCamera, spec: BoxSpec): BoxResult {
 
   for (let i = 0; i < 4; i += 1) {
     const j = (i + 1) % 4;
-    const [nx, nz] = normals[i]!;
+    const [nx, nz] = FACE_DIRS[i]!;
     // 法線を回してから、手前を向いているかを判定する
     const wx = nx * c - nz * s;
     const wz = nx * s + nz * c;
@@ -602,16 +602,10 @@ export function drawPyramidRoof(
     [half, half],
     [-half, half],
   ];
-  const normals: readonly (readonly [number, number])[] = [
-    [0, -1],
-    [1, 0],
-    [0, 1],
-    [-1, 0],
-  ];
   const list: { points: Point2[]; color: string; depth: number }[] = [];
   for (let i = 0; i < 4; i += 1) {
     const j = (i + 1) % 4;
-    const [nx, nz] = normals[i]!;
+    const [nx, nz] = FACE_DIRS[i]!;
     const wx = nx * c - nz * s;
     const wz = nx * s + nz * c;
     if (wx + wz <= 0) continue;

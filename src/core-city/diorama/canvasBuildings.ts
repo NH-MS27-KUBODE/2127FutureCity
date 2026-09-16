@@ -1,6 +1,7 @@
 ﻿import { mix, shade } from '../color';
-import { clamp, createRng, lerp } from '../rng';
+import { createRng, lerp } from '../rng';
 import {
+  FACE_DIRS,
   cylinderBand,
   cylinderFin,
   depthOf,
@@ -14,8 +15,10 @@ import {
   fillPoly,
   glowColor,
   onFace,
+  sideColor,
   strokeRing,
   toScreen,
+  toneOf,
   type Ctx,
   type IsoCamera,
   type Point2,
@@ -42,14 +45,6 @@ export function styleOf(block: DioramaBlock): BuildingStyle {
   return 'tower';
 }
 
-/** 面の外向き法線（ローカル: 0 = -z / 1 = +x / 2 = +z / 3 = -x）。 */
-const FACE_DIRS: readonly (readonly [number, number])[] = [
-  [0, -1],
-  [1, 0],
-  [0, 1],
-  [-1, 0],
-];
-
 function materialColor(block: DioramaBlock, palette: DioramaPalette): string {
   // 壁の塗りは白〜浅灰だけ。色味を混ぜると、陰の面だけ彩度が上がって
   // 回したときに都市の色が変わって見える。
@@ -66,11 +61,7 @@ function facing(camera: IsoCamera, nx: number, nz: number): { front: boolean; to
   const s = Math.sin(camera.rot);
   const wx = nx * c - nz * s;
   const wz = nx * s + nz * c;
-  return { front: wx + wz > -0.28, tone: clamp((wx - wz) * 0.5 + 0.5, 0, 1) };
-}
-
-function sideTone(base: string, tone: number): string {
-  return mix('#dce1e7', base, lerp(0.78, 1, tone));
+  return { front: wx + wz > -0.28, tone: toneOf(wx, wz) };
 }
 
 interface Palette2127 {
@@ -298,13 +289,13 @@ function drawSolarRoof(
   // 高い側の壁と、左右の三角の壁（手前を向いたものだけ）
   const high = facing(camera, ax, az);
   if (high.front) {
-    fillPoly(ctx, [at(1, -1, y), at(1, 1, y), high1, high0], sideTone(tones.body, high.tone));
+    fillPoly(ctx, [at(1, -1, y), at(1, 1, y), high1, high0], sideColor(tones.body, high.tone));
     fillPoly(ctx, [at(1, -1, y + rise * 0.8), at(1, 1, y + rise * 0.8), high1, high0], tones.glow, 0.5);
   }
   for (const sb of [-1, 1]) {
     const side = facing(camera, alongX ? 0 : sb, alongX ? sb : 0);
     if (!side.front) continue;
-    fillPoly(ctx, [at(-1, sb, y), at(1, sb, y), at(1, sb, y + rise)], sideTone(tones.body, side.tone));
+    fillPoly(ctx, [at(-1, sb, y), at(1, sb, y), at(1, sb, y + rise)], sideColor(tones.body, side.tone));
   }
 }
 
@@ -352,7 +343,7 @@ function drawVaultRoof(ctx: Ctx, camera: IsoCamera, block: DioramaBlock, tones: 
       const t = (Math.PI * k) / steps;
       profile.push(at(su * hu, Math.cos(t) * hv, y + Math.sin(t) * rise));
     }
-    fillPoly(ctx, profile, sideTone(tones.body, view.tone));
+    fillPoly(ctx, profile, sideColor(tones.body, view.tone));
     // 妻の丸窓の代わりに、半円に沿った光の縁
     const inner: Point2[] = [];
     for (let k = 0; k <= steps; k += 1) {
