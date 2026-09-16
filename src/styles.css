@@ -58,7 +58,11 @@
    Base
    ============================================================ */
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* 画面が入れ替わって縦スクロールが消えても、幅は動かさない */
+  scrollbar-gutter: stable;
+}
 body {
   margin: 0;
   min-width: 320px;
@@ -592,7 +596,9 @@ button { touch-action: manipulation; }
   --accent: #555860;
   align-items: center;
   justify-content: center;
-  position: absolute;
+  /* 幕は視口に留める。absolute だと下の画面の丈で中心がずれ、
+     跳躍が終わって画面が入れ替わった瞬間に球が飛ぶ。 */
+  position: fixed;
   inset: 0;
   z-index: 4;
   width: 100%;

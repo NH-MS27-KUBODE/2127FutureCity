@@ -50,6 +50,22 @@ export const enumerateCompleteChoices = (): readonly CompleteChoices[] => {
   return combinations
 }
 
+let representatives: Record<ArchetypeId, CompleteChoices> | undefined
+
+/** 各類型へ到達する代表的な政策組み合わせ。検査・撮影用で、初回だけ数え上げる。 */
+export const archetypeRepresentatives = (): Readonly<
+  Record<ArchetypeId, CompleteChoices>
+> => {
+  if (representatives) return representatives
+  const map = {} as Record<ArchetypeId, CompleteChoices>
+  for (const choices of enumerateCompleteChoices()) {
+    const id = scoreArchetype(choices).archetypeId
+    if (!map[id]) map[id] = choices
+  }
+  representatives = map
+  return map
+}
+
 export const runVerification = (): VerificationReport => {
   const combinations = enumerateCompleteChoices()
   const coverage = Object.fromEntries(

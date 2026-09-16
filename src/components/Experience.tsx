@@ -19,6 +19,7 @@ import { POLICY_CATEGORIES, findPolicy } from '../data/policies'
 import { CATEGORY_ICONS, METRIC_LABELS, UI_COPY } from '../data/copy'
 import { useEnter } from '../hooks/useEnter'
 import { calculateScores, getTradeoffs } from '../lib/scoring'
+import { formatIssueDate } from '../lib/citizenCard'
 import { buildStaticWhy } from '../lib/explanation'
 import {
   aggregateChoices,
@@ -168,22 +169,20 @@ export const DioramaStage = forwardRef<DioramaStageHandle, { scores: Scores; arc
       try {
         const archetype = getArchetype(archetypeId as ArchetypeId)
         const plan = tuneDioramaWithScores(archetypeToDiorama(archetype), scores)
+        const box = stage.getBoundingClientRect()
         controllerRef.current = createCanvasDiorama({
           canvas: canvasRef.current,
           config: plan,
-          width: Math.max(320, stage.clientWidth),
-          height: Math.max(240, stage.clientHeight),
+          // the renderer centres the city in the size it is given and writes that
+          // size onto the canvas, so anything but the real box shifts the city
+          width: Math.max(2, box.width),
+          height: Math.max(2, box.height),
         }) as DioramaController
         onReadyRef.current?.()
         // observe the stage, not the canvas: the renderer writes inline px sizes
         // onto the canvas, so observing it would freeze the size at first paint.
-        let skipFirst = true
         const observer = new ResizeObserver(([entry]) => {
           if (!entry) return
-          if (skipFirst) {
-            skipFirst = false
-            return
-          }
           controllerRef.current?.resize?.(entry.contentRect.width, entry.contentRect.height)
         })
         observer.observe(stage)
@@ -675,7 +674,7 @@ export function Souvenir({
   const citizenNumber = deriveCitizenNumber(cityName.trim() || '余白市', archetypeId)
   const numberParts = citizenNumber.split('-')
   const passNumber = `NO. ${numberParts[0]}-${numberParts[numberParts.length - 1]}`
-  const issueDate = `2127年${new Date().getMonth() + 1}月${new Date().getDate()}日`
+  const issueDate = formatIssueDate()
   const tradeoffs = getTradeoffs(scores)
   useEffect(() => {
     dioramaRef.current?.setPaused(true)
